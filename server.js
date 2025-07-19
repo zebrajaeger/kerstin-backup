@@ -33,7 +33,7 @@ app.post('/upload', upload.single('file'), (req, res) => {
   const relPath = req.body.relativePath;
   if (!relPath) return res.status(400).send("Missing path 'relativePath'");
 
-  const fullTarget = path.join(UPLOAD_DIRECTORY, relPath);
+  const fullTarget = safeJoin(UPLOAD_DIRECTORY, relPath);
   const targetDir = path.dirname(fullTarget);
   fs.mkdirSync(targetDir, { recursive: true });
   fs.renameSync(req.file.path, fullTarget);
@@ -85,3 +85,14 @@ function getLocalIp() {
   }
   return '127.0.0.1';
 }
+
+const safeJoin = (base, unsafeRelativePath) => {
+  const normalized = path.normalize(unsafeRelativePath).replace(/^(\.\.(\/|\\|$))+/, '');
+  const targetPath = path.join(base, normalized);
+
+  if (!targetPath.startsWith(base)) {
+    throw new Error('Pfad außerhalb des erlaubten Verzeichnisses.');
+  }
+
+  return targetPath;
+};

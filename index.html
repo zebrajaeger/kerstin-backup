@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Smartphone-Backup</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 1em;
+      font-size: 1.2em;
+    }
+
+    input[type="file"],
+    button {
+      display: block;
+      margin: 1em 0;
+      padding: 1em;
+      font-size: 1.2em;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    ul#statusList {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    ul#statusList li {
+      margin: 0.5em 0;
+      padding: 0.5em;
+      background: #f5f5f5;
+      border-radius: 6px;
+      word-break: break-word;
+      font-family: monospace;
+    }
+
+    ul#statusList li {
+      font-family: monospace;
+      line-height: 1.4em;
+      white-space: pre-wrap;
+    }
+  </style>
+
+</head>
+
+<body>
+  <h1>Fotos sichern</h1>
+  <input type="file" id="folderInput" webkitdirectory multiple />
+  <ul id="statusList"></ul>
+
+  <!-- <script>
+    const originalLog = console.log;
+    console.log = function (...args) {
+      originalLog(...args);
+      fetch("/debug", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ log: args.map(a => a.toString()).join(' ') })
+      });
+    };
+  </script> -->
+
+  <script>
+    const statusList = document.getElementById('statusList');
+
+    document.getElementById('folderInput').addEventListener('change', async (event) => {
+      const files = event.target.files;
+      for (const file of files) {
+        const li = document.createElement('li');
+        li.textContent = `⌛ ${file.webkitRelativePath}`;
+        statusList.appendChild(li);
+
+        try {
+          const formData = new FormData();
+          formData.append("file", file, file.webkitRelativePath);
+          formData.append("relativePath", file.webkitRelativePath);
+
+          const res = await fetch("/upload", {
+            method: "POST",
+            body: formData
+          });
+
+          if (res.ok) {
+            li.textContent = `✅ ${file.webkitRelativePath}`;
+          } else {
+            li.textContent = `❌ ${file.webkitRelativePath}`;
+          }
+        } catch (err) {
+          li.textContent = `? Fehler bei ${file.name}`;
+          console.error(err);
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>

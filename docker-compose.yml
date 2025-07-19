@@ -1,0 +1,13 @@
+services:
+  backup:
+    build: .
+    ports:
+      - "3039:3000"
+    volumes:
+      - ./upload:/app/upload
+    restart: unless-stopped
+    # networks:
+    #   - proxy
+# networks:
+#   proxy:
+#     external: true
